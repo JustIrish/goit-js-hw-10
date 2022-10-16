@@ -7,60 +7,58 @@ const DEBOUNCE_DELAY = 300;
 
 const inputEl = document.querySelector('#search-box');
 const listEl = document.querySelector('.country-list');
+const card = document.querySelector('.country-info');
 
 inputEl.addEventListener('input', debounce(handleInput, DEBOUNCE_DELAY));
 
 function handleInput() {
   const countryName = inputEl.value.trim();
+  listEl.innerHTML = '';
+  card.innerHTML = '';
 
   if (countryName === '') {
-    listEl.innerHTML = '';
-  } else {
-    fetchCountries(countryName)
-      .then(data => {
-        console.log(data);
-
-        if (data.length > 10) {
-          Notify.info(
-            'Too many matches found. Please enter a more specific name.'
-          );
-          listEl.innerHTML = '';
-          return;
-        } else {
-          const markup =
-            data.length === 1 ? createMarkupCard(data) : createMarkupList(data);
-
-          listEl.innerHTML = markup;
-        }
-      })
-      .catch(err => {
-        Notify.failure('Oops, there is no country with that name');
-        listEl.innerHTML = '';
-      });
+    return;
   }
+
+  fetchCountries(countryName)
+    .then(data => {
+      // console.log(data);
+      if (data.length >= 10) {
+        Notify.info(
+          'Too many matches found. Please enter a more specific name.'
+        );
+        return;
+      } else if (data.length === 1) {
+        const markup = createMarkupCard(data[0]);
+        card.insertAdjacentHTML('beforeend', markup);
+      } else {
+        const markup = createMarkupList(data);
+        listEl.insertAdjacentHTML('beforeend', markup);
+      }
+    })
+    .catch(err => {
+      Notify.failure('Oops, there is no country with that name');
+    });
 }
 
 function createMarkupList(arr) {
   return arr
     .map(
-      country => `<li class="country-list-item">
-  <img src="${country.flags.svg}" alt="flag ${country.name.official}" width = "30" />
-  <h2 class="country-title">${country.name.official}</h2>
+      ({ flags, name }) => `<li class="country-list-item">
+  <img src="${flags.svg}" alt="flag ${name.official}" width = "30" />
+  <h2 class="country-title">${name.common}</h2>
   </li>`
     )
     .join('');
 }
 
 function createMarkupCard(arr) {
-  return arr
-    .map(
-      country => `<img src="${country.flags.svg}" alt="flag ${
-        country.name.official
-      }" width = "30" />
-  <h2>${country.name.official}</h2>
-  <p>Capital: ${country.capital}</p>
-  <p>Population: ${country.population}</p>
-  <p>Languages: ${(Object.values(country.languages)).join(', ')}</p>`
-    )
-    .join('');
+  const { flags, name, capital, population, languages } = arr;
+  return `<h2 class="country-info-title"><img src="${flags.svg}" alt="flag ${
+    name.official
+  }" width = "30" />
+  ${name.common}</h2>
+  <p><b>Capital:</b> ${capital}</p>
+  <p><b>Population:</b> ${population}</p>
+  <p><b>Languages:</b> ${Object.values(languages).join(', ')}</p>`;
 }

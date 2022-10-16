@@ -35,5 +35,10 @@ body {
 }
 .country-title {
   margin: 0px 0px 0px 10px;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 400;
+}
+.country-info-title {
+  margin: 0;
+  font-size: 30px;
 }
